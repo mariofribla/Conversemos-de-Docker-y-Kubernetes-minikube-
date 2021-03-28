@@ -1,0 +1,27 @@
+version: "3.9"
+services:
+  r2web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+    container_name: ctn_web
+    tty: true
+    ports:
+      - "3000:3000"
+
+  r2nginx:
+    container_name: ctn_nginx
+    image: nginx:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "./nginx:/etc/nginx/conf.d"
+    links:
+      - "r2web:webserver"
+
+networks:
+  default:
+    external:
+      name: net_red
+

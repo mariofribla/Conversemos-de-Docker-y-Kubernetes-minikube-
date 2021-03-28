@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kubernetes.io/change-cause: “Pod10Charla: One Probe Service"
+  name: deploy2
+  labels:
+    app: deploy2
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: rspod2
+  template:
+    metadata:
+      labels:
+        app: tmpPod2
+  spec:
+    containers:
+    - name: nginx
+      image: nginx:alpine

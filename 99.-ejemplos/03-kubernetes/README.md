@@ -47,7 +47,7 @@ $ vi pod3.yml
 apiVersion: v1
 kind: Pod
 metadata:
-name: pod3
+  name: pod3
 spec:
   containers:
   - name: cont_1pod3

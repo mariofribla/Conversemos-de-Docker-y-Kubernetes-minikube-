@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: replicaset1
+  labels:
+    app: rs1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: rs1
+  template:
+    metadata:
+      labels:
+        app: tmpPod7charla
+      spec:
+        containers:
+        - name: cont1pod3
+          image: python:3.6-alpine
+          command: ['sh', '-c','echo  "  cont1pod3" > index.html && python -m http.server 8082']
+        - name: cont2pod3
+          image: python:3.6-alpine
+          command: ['sh', '-c','echo  "  cont2pod3" > index.html && python -m http.server 8083']
