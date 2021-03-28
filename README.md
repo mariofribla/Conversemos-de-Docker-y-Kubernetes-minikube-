@@ -373,7 +373,7 @@ $ docker  inspect –f ‘{{range $p, $conf:=.NetworkSettings.Ports}}{{$p}}->{{(
 ```
 ### Ver Setting Contenedor.
 ```sh
-$docker run --rm  ctn_Ubuntu  env
+$ docker run --rm  ctn_Ubuntu  env
 ```
 ### Eliminar Contenedores en Ejecución.
 ```sh
@@ -408,4 +408,166 @@ Implementando un contenedor Docker.
 + **docker  push**
   + Registra una imagen del Usuario/Host en Docker  Registry.
 
+# Docker  Swarm
+![](./img/pag28_k8s.jpg)
+## Inicializando Docker  Swarm.
++ Para crear un Cluster los nodos deben tener una IP Fija, no es recomendable que sea DHCP.
+```sh
+$ docker  swarn  init --advertise-addr <ip_master>
+```
++ Este comando regresa información para unir los nodos al cluster.
+```sh
+To add a worker to this  swarm, run the  following  command:
+docker  swarm  join \
+--token SWMTKN-1-49nj1cmql0jkz5s954yi3oex3nedyz0fb0xx14ie39trti4wxv-8vxv8rssmk743ojnwacrr2e7c <ip_master>:2377
+
+$ docker  info
+$ docker  node  ls
+```
++ Unir Nodos al Cluster.
+  + Logeado desde host que será nodo con Docker instalado previamente, ejecutar el siguiente comando:
+```sh
+$ docker  swarm  join  --token SWMTKN-1-49nj1cmql0jkz5s954yi3oex3nedyz0fb0xx14ie39trti4wxv-8vxv8rssmk743ojnwacrr2e7c <ip_master>:2377
+```
+![](./img/pag30_1_k8s.jpg)
+![](./img/pag30_2_k8s.jpg)
+![](./img/pag30_3_k8s.jpg)
+
+### Administrando el Token.
++ Para recuperar el Token para implementar un nuevo nodo.
+```sh
+$ docker  swarm  join-token  worker
+$ docker  info
+$ docker  node  ls
+```
+### Administrando el Cluster (Docker  Service).
++ Una ves creados el nodo manager como los nodos del cluster, comenzamos a crear servicios en el cluster.
++ Un Service, se define como un contenedor desplegado en el cluster.
+```sh
+$ docker  service  ls
+$ docker  service  create  httpd:latest
+```
+Este comando creará un contenedor en el cluster. En que nodo lo creo?
+```sh
+$ docker  service  ls
+$ docker  service  ps <nameService>
+```
+### Escalemos un servicio.
+```sh
+$ docker  service  ls
+$ docker  service  scale <nameService>=4
+$ docker  service  ls
+$ docker  service  ps <nameService>
+```
+### Disminuyamos la cantidad de Servicios.
+```sh
+$ docker  service  scale <nameService>=2
+```
+### Haciendo un deploy con docker-compose.yml.
+```sh
+$ docker  stack  deploy –c docker-compose.yml <nameStack>
+$ docker  stack  ls
+$ docker  service  ls
+$ docker  service  ps <nameStack_Containe>
+```
+# Docker  Machine
+![](./img/pag34_k8s.jpg)
+### Instalación.
+```sh
+$ curl -L https://github.com/docker/machine/releases/download/v0.16.1/docker-machine-`uname -s`-`uname -m` >/tmp/docker-machine
+$ chmod  +x /tmp/docker-machine
+$ sudo cp /tmp/docker-machine /usr/local/bin/docker-machine
+$ sudo +x /usr/local/bin/docker-machine
+```
+### Conociendo Docker-Machine.
+![](./img/pag34_1_k8s.jpg)
+
+### Creando Docker  Machine.
+```sh
+$ docker-machine create --driver none --url=tcp://50.134.234.20:2376 custombox
+$ docker-machine créate –d virtualbox vbx_nodo1
+$ docker-machine create --driver=vmwareworkstation  vt_nodo2
+$ docker-machine create --driver vmwarevsphere --vmwarevsphere-username=user --vmwarevsphere-password=SECRET vm_nodo3
+$ docker-machine ls
+$ docker-machine ssh vbx_nodo1
+```
+
+# KUBERNETES
+### Definición Oficial 
++ Es una herramienta de Orquestación de contenedores de código abierto.
++ Desarrollado originalmente por Google.
++ Administra Contenedores acoplables o alguna tecnología que básicamente.
++ Kubernetes nos ayuda a administrar aplicaciones compuestas de cientos de contenedores o quizás de miles de contenedores.
++ Esta administración puede ser en entornos físicos, maquinas virtuales, en la nube o entornos híbridos.
+
+![](./img/pag36_1_k8s.jpg)
+![](./img/pag36_2_k8s.jpg)
+
+### PROBLEMA-SOLUCIÓN CASO DE ESTUDIO.
+#### Problema:
++ ¿Aplicaciones Monolíticas?
++ ¿La infraestructura física crece?
++ ¿Diversos Scripts propietarios para la mantención de entornos y/o ambientes?
++ ¿A pesar de la implementación de CI/CD2 aun es complejo de mantener?
++ Escenarios complejos y específicos de productos.
+#### Solución:
++ Una herramienta de Orquestación de Contenedores: Kubernetes.
+  + Se garantiza la Alta Disponibilidad o no Downtime.
+  + Escalabilidad o Alto Rendimiento.
+  + Baja tasa de respuesta.
+  + Recuperación de desastres. Backup and Restore.
+### ARQUITECTURA BASICA
+#### ¿Como es realmente la arquitectura de Kubernetes (K8S)?
++ Para le definición de una arquitectura básica, se debe tener por lo menos 2 nodos, unos de ellos se denominará Master y el o los otros nodos Slave o Worker.
+#### MASTER:
++ El nodo Master administrará el Clusters sobre los nodos, entrega instrucciones a los nodos de lo solicitado.
++ El Master posee algunos componentes:
+  + Api-Server: componente que nso permite comunicarnos con K8S por intermedio de una API. Esta comunicación es a través del comando kubectl.
+  + Scheduler: componente encargado informar en que nodo se debe cumplir el requerimiento solicitado. Administra los recursos del cluster.
+#### Controller: 
++ Existen 4 componentes:
+  + Node-Controller: es el encargado de crear una máquina o contenedor cuando falla o se cae.
+  + Replicate-Controller: encargado de mantener las replicas en los contenedores. Desde ahora POD.
+  + EndPoint-Controller: son servicios y Pod’s a nivel de redes.
+  + Account-Controller: esta orientado a la autentificación de las API’s.
+#### ETCD: 
++ Base de datos Key-Value. Utilizada para almacenar la información de K8S y utilizada por las API’s.
+
+![](./img/pag40_k8s.jpg)
+
+##### WORKER:
++ Cada nodo Worker, tendrá un agente denominado: Kubelet, es el responsable de informar y recibir ordenes desde el Master.
++ Cada Worker, tiene contenedores (POD’s) donde se alojan estas aplicaciones y un servicios denominado KubeProxy, que es el encargado de la red de los contenedores.
++ Adicionalmente, existe un componente Container-Runtime en cada nodo Worker y debe estar instalado para su correcto funcionamiento.
+
+![](./img/pag42_k8s.jpg)
+![](./img/pag43_k8s.jpg)
+
+### CONCEPTOS BÁSICOS
+#### POD: 
++ Contenedor, es la unidad más pequeña. Un Pod, puede contener 1 a n contenedores. Cada Pod, posee una IP Interna reconocida solamente en el Cluster, no es una IP publica que se pueda acceder desde el exterior u otra red. Cada ves que se crea un POD se asigna una IP nueva.
+#### SERVICE: 
++ Es un servicio que disponibiliza una IP Permanente que se comunica con el Pod asociado. Si el Pod falla o se recrea por algún motivo, el Service mantendrá esta IP asignada inicialmente para su acceso. Existen 3 tipos de Service: ClusterIP, NodePort y LoadBalance.
+
+El **Pod**, es la unidad mínima que contiene 1 o más contenedores y es unico. Para lograr que este Pod posea varias replicas debemos generar un ReplicaSet.
+
+**ReplicaSet**, nos permite definir cuantas replicas del Pod’s queremos generar. Acá es necesario comenzar a implementar el concepto de Label’s.
+
+Si necesitas que los cambios realizados en nuestros aplicativos sea aplicado a los contenedores de los Pod’s existentes y a su ves a las replicas de estos. Para lograr esta acción se utiliza el concepto de Deployment.
+
+**Deployment**, es un .yaml que nos permite definir en un solo archivo manifiesto lo que deseamos implementar en K8S. Esto nos ayuda a la administración de los cambios, ya sean estos, de aplicativos, de ambientes, aumento de replicación de pod’s, etc
+
+![](./img/pag47_k8s.jpg)
+![](./img/pag48_k8s.jpg)
+
+### Que dice Google..???
+![](./img/pag49_k8s.jpg)
+#### Dice que si quieres aprender bien Kubernetes, solo debes leer este Comic.
+
+[https://cloud.google.com/kubernetes-engine/kubernetes-comic/](https://cloud.google.com/kubernetes-engine/kubernetes-comic/)
+
+
+
+#
+### SACACI Chile
 
